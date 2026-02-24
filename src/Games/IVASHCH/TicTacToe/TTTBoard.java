@@ -97,7 +97,7 @@ public class TTTBoard implements Board {
             throw new Board.InvalidMoveException("Cell is already occupied");
         }
         board[move.row][move.col] = currentPlayer;
-        movesHistory.add(move);
+        movesHistory.add(new TTTMove(move.row, move.col));
         validMoves.remove(move);
         currentPlayer = -currentPlayer;  // Switch to the other player
         moveCount++;
@@ -141,7 +141,6 @@ public class TTTBoard implements Board {
             board[lastMove.row][lastMove.col] = EMPTY;  // Undo the move
             currentPlayer = -currentPlayer;  // Switch back to the previous player
             moveCount--;
-            movesHistory.remove(lastMove);  // Remove the move from the history
             validMoves.add(lastMove);  // Add the move back to the list of valid moves
             validMoves.sort(null);  // Sort the list of valid moves
         }

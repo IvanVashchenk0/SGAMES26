@@ -139,10 +139,8 @@ public class BoardDriver {
     }
 
     public void undoMoves(int count) {
-        for (int i = 0; i < count; i++) {
-            if (board.getMoveHistory().isEmpty()) {
-                break;
-            }
+        int toUndo = Math.min(count, board.getMoveHistory().size());
+        for (int i = 0; i < toUndo; i++) {
             board.undoMove();
         }
     }

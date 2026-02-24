@@ -1,0 +1,13 @@
+domove 1 1
+showboard
+showmoves
+showmovehist
+domove 2 2
+showmovehist
+entermove 2 1
+showmove
+undomoves 5
+showmovehist
+showboard
+testrun 42 1000
+showboard

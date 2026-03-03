@@ -321,7 +321,8 @@ public class BoardDriver {
         
         if (args.length != 1) {
             System.out.println("Usage: java -cp bin Games.BoardDriver <BoardClassName>");
-            System.out.println("Example: java -cp bin Games.BoardDriver Games.acrump.TicTacToe.TTTBoard");
+            System.out.println("  TicTacToe:  Games.IVASHCH.TicTacToe.TTTBoard");
+            System.out.println("  CenterRush: Games.IVASHCH.CenterRush.CRBoard");
             System.exit(1);
         }
 

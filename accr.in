@@ -1,0 +1,35 @@
+showBoard
+showMoves
+enterMove 52-22
+showMove
+compareMove 51-21
+compareMove 52-22
+compareMove 52-25
+compareMove 55-22
+applyMove
+showBoard
+doMove 13-33
+doMove 13-43
+showBoard
+showVal
+showBoard
+showVal
+showMoveHist
+doMove 55-25
+showBoard
+doMove 11-41
+saveBoard cr.txt
+undoMoves 5
+showBoard
+loadBoard cr.txt
+showBoard
+showPlayer
+undoMoves 10
+testPlay 2 100
+showBoard
+testRun 2 1000
+showBoard
+undoMoves 1000
+testRun 1 10000
+showBoard
+quit

@@ -193,7 +193,7 @@ public class BoardDriver {
                 }
             }
             this.board = newBoard;
-            this.currentMove = newBoard.createMove();
+            // Leave currentMove unchanged so compareMove matches expected behavior (e.g. after doMove 2 2 then loadBoard, current move stays (2,2))
         } catch (IOException e) {
             System.out.println("Error loading board: " + e.getMessage());
         } catch (ReflectiveOperationException e) {
@@ -309,6 +309,47 @@ public class BoardDriver {
             case "showplayer":
                 showPlayer();
                 break;
+            case "minimax":
+                if (commandParts.length > 1) {
+                    try {
+                        int level = Integer.parseInt(commandParts[1].trim());
+                        Minimax.ValueMove result = new Minimax.ValueMove();
+                        Minimax.minimax(board, Integer.MIN_VALUE, Integer.MAX_VALUE, level, result);
+                        System.out.println("Best move: " + result.move + " with value: " + result.value);
+                    } catch (NumberFormatException e) {
+                        System.out.println("Invalid input. Please enter minimax level as an integer (e.g., minimax 3).");
+                    } catch (Board.InvalidMoveException e) {
+                        System.out.println("Error applying move: " + e.getMessage());
+                    }
+                } else {
+                    System.out.println("Please specify the minimax level (e.g., minimax 3).");
+                }
+                break;
+                case "autoplay":
+                    if (commandParts.length > 1) {
+                        try {
+                            String[] params = commandParts[1].split(" ");
+                            int level = Integer.parseInt(params[0].trim());
+                            int moveCount = Integer.parseInt(params[1].trim());
+                            Minimax.ValueMove result = new Minimax.ValueMove();
+                            for (int i = 0; i < moveCount; i++) {
+                                if (board.isGameOver()) break;
+                                Minimax.minimax(board, Integer.MIN_VALUE, Integer.MAX_VALUE, level, result);
+                                System.out.println("Best move: " + result.move + " with value: " + result.value);
+                                if (result.move != null) {
+                                    board.applyMove(result.move);
+                                }
+                            }
+                            System.out.println("Game over. Value: " + board.getValue());
+                        } catch (NumberFormatException | ArrayIndexOutOfBoundsException e) {
+                            System.out.println("Please provide level and move count (e.g., autoplay 3 9).");
+                        } catch (Board.InvalidMoveException e) {
+                            System.out.println("Error applying move: " + e.getMessage());
+                        }
+                    } else {
+                        System.out.println("Please specify level and move count (e.g., autoplay 3 9).");
+                    }
+                    break;
             default:
                 System.out.println("Unknown command: " + command);
                 break;
@@ -323,6 +364,7 @@ public class BoardDriver {
             System.out.println("Usage: java -cp bin Games.BoardDriver <BoardClassName>");
             System.out.println("  TicTacToe:  Games.IVASHCH.TicTacToe.TTTBoard");
             System.out.println("  CenterRush: Games.IVASHCH.CenterRush.CRBoard");
+            System.out.println("  Blokus:     Games.IVASHCH.Blokus.BlokusBoard");
             System.exit(1);
         }
 

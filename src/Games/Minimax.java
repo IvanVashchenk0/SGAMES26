@@ -1,22 +1,23 @@
 package Games;
 
+import java.util.ArrayList;
 import java.util.List;
 import Games.Board.Move;
 
 public class Minimax {
-    
+
     public static class ValueMove {
         int value;
         Board.Move move;
     }
     public static void minimax(Board board, int min, int max, int level, ValueMove result) throws Board.InvalidMoveException {
-       List<? extends Board.Move> validMoves = board.getValidMoves();
-       
-        if (level == 0 || validMoves.isEmpty()) {
+        List<? extends Board.Move> validMoves = new ArrayList<>(board.getValidMoves());
+
+        if (level == 0 || validMoves.isEmpty() || board.isGameOver()) {
             result.value = board.getValue();
             result.move = null;
             return;
-    }
+        }
     if (board.getCurrentPlayer() == Board.PLAYER_1) {
         result.value = Integer.MIN_VALUE;
         for (Move move : validMoves) {

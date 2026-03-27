@@ -41,7 +41,7 @@ public class TTTBoard implements Board {
 
         @Override
         public void fromString(String s) throws java.io.IOException {
-            String[] parts = s.split(" ");
+            String[] parts = s.split("[ ,]+");
             if (parts.length != 2) throw new java.io.IOException("Invalid move format");
             try {
                 row = Integer.parseInt(parts[0].trim());
@@ -53,7 +53,7 @@ public class TTTBoard implements Board {
 
         @Override
         public String toString() {
-            return row + " " + col;
+            return row + "," + col;
         }
 
         @Override

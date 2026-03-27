@@ -1,0 +1,30 @@
+showBoard
+enterMove 1,1
+applyMove
+showBoard
+enterMove 1,2
+applyMove
+enterMove 1,3
+applyMove
+showBoard
+showMoveHist
+saveBoard TTT.brd
+doMove 2,2
+showVal
+showBoard
+loadBoard TTT.brd
+compareMove 2,3
+compareMove 2,2
+compareMove 3,1
+compareMove 1,3
+showPlayer
+undoMoves 2
+showBoard
+undoMoves 10
+testPlay 1 10
+showBoard
+showVal
+testRun 1 1000
+showBoard
+showVal
+quit

@@ -3,16 +3,19 @@
  | | 
 -----
  | | 
+
 X| | 
 -----
  | | 
 -----
  | | 
+
 X|O|X
 -----
  | | 
 -----
  | | 
+
 1,1                                     1,2                                     
 1,3                                     
 -1
@@ -21,6 +24,7 @@ X|O|X
  |O| 
 -----
  | | 
+
 Current move is less
 Current move is equal
 Current move is less
@@ -31,15 +35,18 @@ X| |
  | | 
 -----
  | | 
+
 O|O|X
 -----
  | |O
 -----
 X|X|X
+
 1000000
  |X| 
 -----
 O|O|X
 -----
 X|X|O
+
 -1

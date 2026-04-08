@@ -8,12 +8,29 @@ public class BlokusBoard implements Board {
     public static final int SIZE = 14;
     public static final int NUM_PIECES = 21;
     public static final int EMPTY = 0;
+    public static final int NUM_ORIENTATIONS = 8;
+    public static final int SQUARE_VALUE = 50;
+    public static final int CONSECUTIVE_PASS_LIMIT = 2;
 
-    static final String[] ORI_TOKENS = {"^", ">", "v", "<", "^|", ">|", "v|", "<|"};
+    public static final int START_R1 = 5;
+    public static final int START_C1 = 5;
+    public static final int START_R2 = 10;
+    public static final int START_C2 = 10;
+    public static final int COL_LABEL_WRAP = 10;
+
+    static final int ROT_270 = 3;
+    static final int MIR_0 = 4;
+    static final int MIR_90 = 5;
+    static final int MIR_180 = 6;
+    static final int MIR_270 = 7;
+
+    static final String[] ORI_TOKENS = 
+    {"^", ">", "v", "<", "^|", ">|", "v|", "<|"};
 
     static final String[] PIECE_NAMES = {
         "I1", "I2", "I3", "L3", "I4", "L4", "O4", "S4", "T4",
-        "I5", "L5", "P5", "R5", "S5", "T5", "U5", "V5", "W5", "X5", "Y5", "Z5"
+        "I5", "L5", "P5", "R5", "S5", "T5", 
+        "U5", "V5", "W5", "X5", "Y5", "Z5"
     };
 
     static final Map<String, Integer> NAME_TO_INDEX = new HashMap<>();
@@ -56,7 +73,7 @@ public class BlokusBoard implements Board {
         CANONICAL_CELLS = new int[NUM_PIECES][][][];
         CANONICAL_TOKENS = new int[NUM_PIECES][];
         NUM_CANONICAL = new int[NUM_PIECES];
-        TOKEN_TO_CANONICAL = new int[NUM_PIECES][8];
+        TOKEN_TO_CANONICAL = new int[NUM_PIECES][NUM_ORIENTATIONS];
 
         for (int p = 0; p < NUM_PIECES; p++) {
             int[][] base = PIECE_BASE[p];
@@ -68,22 +85,30 @@ public class BlokusBoard implements Board {
                 maxC = Math.max(maxC, cell[1]);
             }
 
-            int[][][] allTrans = new int[8][][];
-            String[] allKeys = new String[8];
+            int[][][] allTrans = new int[NUM_ORIENTATIONS][][];
+            String[] allKeys = new String[NUM_ORIENTATIONS];
 
-            for (int t = 0; t < 8; t++) {
+            for (int t = 0; t < NUM_ORIENTATIONS; t++) {
                 int[][] tc = new int[base.length][2];
                 for (int i = 0; i < base.length; i++) {
                     int r = base[i][0], c = base[i][1];
                     switch (t) {
-                        case 0: tc[i][0] = r;        tc[i][1] = c;        break;
-                        case 1: tc[i][0] = c;        tc[i][1] = maxR - r; break;
-                        case 2: tc[i][0] = maxR - r; tc[i][1] = maxC - c; break;
-                        case 3: tc[i][0] = maxC - c; tc[i][1] = r;        break;
-                        case 4: tc[i][0] = r;        tc[i][1] = maxC - c; break;
-                        case 5: tc[i][0] = c;        tc[i][1] = r;        break;
-                        case 6: tc[i][0] = maxR - r; tc[i][1] = c;        break;
-                        case 7: tc[i][0] = maxC - c; tc[i][1] = maxR - r; break;
+                        case 0: tc[i][0] = r;     
+                           tc[i][1] = c;        break;
+                        case 1: tc[i][0] = c;    
+                            tc[i][1] = maxR - r; break;
+                        case 2: tc[i][0] = maxR - r; 
+                            tc[i][1] = maxC - c; break;
+                        case ROT_270: tc[i][0] = maxC - c; 
+                            tc[i][1] = r;        break;
+                        case MIR_0:   tc[i][0] = r;    
+                            tc[i][1] = maxC - c; break;
+                        case MIR_90:  tc[i][0] = c;     
+                           tc[i][1] = r;        break;
+                        case MIR_180: tc[i][0] = maxR - r;
+                             tc[i][1] = c;        break;
+                        case MIR_270: tc[i][0] = maxC - c; 
+                            tc[i][1] = maxR - r; break;
                     }
                 }
 
@@ -97,7 +122,8 @@ public class BlokusBoard implements Board {
                     cell[1] -= minC2;
                 }
 
-                Arrays.sort(tc, (a, b) -> a[0] != b[0] ? a[0] - b[0] : a[1] - b[1]);
+                Arrays.sort(tc, (a, b) -> a[0] != b[0] 
+                ? a[0] - b[0] : a[1] - b[1]);
                 allTrans[t] = tc;
                 allKeys[t] = Arrays.deepToString(tc);
             }
@@ -106,7 +132,7 @@ public class BlokusBoard implements Board {
             List<Integer> tList = new ArrayList<>();
             Map<String, Integer> seen = new LinkedHashMap<>();
 
-            for (int t = 0; t < 8; t++) {
+            for (int t = 0; t < NUM_ORIENTATIONS; t++) {
                 if (!seen.containsKey(allKeys[t])) {
                     seen.put(allKeys[t], cList.size());
                     cList.add(allTrans[t]);
@@ -227,7 +253,8 @@ public class BlokusBoard implements Board {
                 CANONICAL_TOKENS[other.pieceIndex][other.oriIndex]);
             if (cmp != 0) return cmp;
 
-            if (this.row != other.row) return Integer.compare(this.row, other.row);
+            if (this.row != other.row) 
+                return Integer.compare(this.row, other.row);
             return Integer.compare(this.col, other.col);
         }
     }
@@ -239,10 +266,12 @@ public class BlokusBoard implements Board {
     public int getCurrentPlayer() { return currentPlayer; }
 
     @Override
-    public boolean isGameOver() { return consecutivePasses >= 2; }
+    public boolean isGameOver() { 
+        return consecutivePasses >= CONSECUTIVE_PASS_LIMIT; }
 
     @Override
-    public List<BlokusMove> getMoveHistory() { return new ArrayList<>(movesHistory); }
+    public List<BlokusMove> getMoveHistory() { 
+        return new ArrayList<>(movesHistory); }
 
     @Override
     public void applyMove(Board.Move m) throws InvalidMoveException {
@@ -269,10 +298,14 @@ public class BlokusBoard implements Board {
             throw new InvalidMoveException("Piece not in hand");
 
         int[][] cells = CANONICAL_CELLS[move.pieceIndex][move.oriIndex];
-        boolean first = isFirstMove(currentPlayer);
 
-        if (!isLegalPlacement(cells, move.row, move.col, currentPlayer, first))
-            throw new InvalidMoveException("Illegal placement");
+        for (int[] cell : cells) {
+            int r = move.row + cell[0], c = move.col + cell[1];
+            if (r < 1 || r > SIZE || c < 1 || c > SIZE)
+                throw new InvalidMoveException("Out of bounds");
+            if (board[r][c] != EMPTY)
+                throw new InvalidMoveException("Overlap");
+        }
 
         for (int[] cell : cells)
             board[move.row + cell[0]][move.col + cell[1]] = currentPlayer;
@@ -328,7 +361,8 @@ public class BlokusBoard implements Board {
 
                 for (int ar = 1; ar <= SIZE - maxDr; ar++)
                     for (int ac = 1; ac <= SIZE - maxDc; ac++)
-                        if (isLegalPlacement(cells, ar, ac, currentPlayer, first))
+                        if (isLegalPlacement
+                            (cells, ar, ac, currentPlayer, first))
                             moves.add(new BlokusMove(p, oi, ar, ac));
             }
         }
@@ -354,8 +388,9 @@ public class BlokusBoard implements Board {
             return 0;
         }
 
-        return 50 * xSq + computeMobility(PLAYER_1)
-             - 50 * oSq - computeMobility(PLAYER_2);
+        int xMob = computeMobility(PLAYER_1);
+        int oMob = computeMobility(PLAYER_2);
+        return SQUARE_VALUE * xSq + xMob - SQUARE_VALUE * oSq - oMob;
     }
 
     @Override
@@ -364,8 +399,8 @@ public class BlokusBoard implements Board {
 
         sb.append("   ");
         for (int c = 1; c <= SIZE; c++) {
-            if (c == 10) sb.append("t");
-            else if (c > 10) sb.append(c - 10);
+            if (c == COL_LABEL_WRAP) sb.append("t");
+            else if (c > COL_LABEL_WRAP) sb.append(c - COL_LABEL_WRAP);
             else sb.append(c);
             if (c < SIZE) sb.append(" ");
         }
@@ -377,20 +412,21 @@ public class BlokusBoard implements Board {
                 sb.append(" ");
                 if (board[r][c] == PLAYER_1) sb.append("X");
                 else if (board[r][c] == PLAYER_2) sb.append("O");
-                else if ((r == 5 && c == 5) || (r == 10 && c == 10)) sb.append("s");
+                else if ((r == START_R1 && c == START_C1) 
+                    || (r == START_R2 && c == START_C2)) sb.append("s");
                 else sb.append(".");
             }
-            if (r == 13) {
+            if (r == SIZE - 1) {
                 sb.append(" X's hand:");
                 for (int p = 0; p < NUM_PIECES; p++)
                     if (hands[0][p]) sb.append(" ").append(PIECE_NAMES[p]);
             }
-            if (r == 14) {
+            if (r == SIZE) {
                 sb.append(" O's hand:");
                 for (int p = 0; p < NUM_PIECES; p++)
                     if (hands[1][p]) sb.append(" ").append(PIECE_NAMES[p]);
             }
-            sb.append("\n");
+            sb.append(" \n");
         }
         return sb.toString();
     }
@@ -399,15 +435,18 @@ public class BlokusBoard implements Board {
 
     private boolean isFirstMove(int player) {
         int hi = player == PLAYER_1 ? 0 : 1;
+        boolean allInHand = true;
         for (int i = 0; i < NUM_PIECES; i++)
-            if (!hands[hi][i]) return false;
-        return true;
+            if (!hands[hi][i]) { allInHand = false; break; }
+        if (allInHand) return true;
+        int startR = player == PLAYER_1 ? START_R2 : START_R1;
+        int startC = player == PLAYER_1 ? START_C2 : START_C1;
+        return board[startR][startC] == EMPTY;
     }
 
     private boolean isLegalPlacement(int[][] cells, int ar, int ac,
                                      int player, boolean firstMove) {
-        int startR = player == PLAYER_1 ? 5 : 10;
-        int startC = player == PLAYER_1 ? 5 : 10;
+        
         boolean coversStart = false;
         boolean hasDiag = false;
 
@@ -423,13 +462,19 @@ public class BlokusBoard implements Board {
             if (c < SIZE && board[r][c + 1] == player) return false;
 
             if (!hasDiag) {
-                if (r > 1    && c > 1    && board[r-1][c-1] == player) hasDiag = true;
-                else if (r > 1    && c < SIZE && board[r-1][c+1] == player) hasDiag = true;
-                else if (r < SIZE && c > 1    && board[r+1][c-1] == player) hasDiag = true;
-                else if (r < SIZE && c < SIZE && board[r+1][c+1] == player) hasDiag = true;
+                if (r > 1    && c > 1    && board[r-1][c-1] == player)
+                     hasDiag = true;
+                else if (r > 1    && c < SIZE && board[r-1][c+1] == player) 
+                    hasDiag = true;
+                else if (r < SIZE && c > 1    && board[r+1][c-1] == player) 
+                    hasDiag = true;
+                else if (r < SIZE && c < SIZE && board[r+1][c+1] == player) 
+                    hasDiag = true;
             }
 
-            if (r == startR && c == startC) coversStart = true;
+            if ((r == START_R1 && c == START_C1) 
+                || (r == START_R2 && c == START_C2))
+                coversStart = true;
         }
 
         return firstMove ? coversStart : hasDiag;
@@ -442,7 +487,6 @@ public class BlokusBoard implements Board {
 
         for (int p = 0; p < NUM_PIECES; p++) {
             if (!hands[hi][p]) continue;
-            int sz = PIECE_SIZES[p];
 
             for (int oi = 0; oi < NUM_CANONICAL[p]; oi++) {
                 int[][] cells = CANONICAL_CELLS[p][oi];
@@ -454,7 +498,7 @@ public class BlokusBoard implements Board {
                 for (int ar = 1; ar <= SIZE - maxDr; ar++)
                     for (int ac = 1; ac <= SIZE - maxDc; ac++)
                         if (isLegalPlacement(cells, ar, ac, player, first))
-                            mobility += sz;
+                            mobility += PIECE_SIZES[p];
             }
         }
         return mobility;

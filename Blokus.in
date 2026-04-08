@@ -1,0 +1,39 @@
+doMove X5 ^ (4,5)
+showVal
+showPlayer
+showBoard
+showMoves
+doMove L4 < (9,9)
+showVal
+showBoard
+doMove P5 <| (6,2)
+showVal
+showBoard
+undoMoves 1
+doMove S4 >| (2,4)
+showVal
+showBoard
+undoMoves 3
+testPlay 1 50
+showBoard
+showVal
+saveBoard blokus.bin
+undoMoves 10
+showBoard
+loadBoard blokus.bin
+showMoveHist
+undoMoves 50
+testRun 1 50
+showBoard
+showVal
+testRun 1 200
+showBoard
+showVal
+testRun 1 800
+showBoard
+showVal
+testRun 1 5000
+showBoard
+showVal
+showPlayer
+quit

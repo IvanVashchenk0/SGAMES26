@@ -1,0 +1,2 @@
+DEBUG getValue: xSq=5 oSq=0 xMob=3782 oMob=1942
+DEBUG getValue: xSq=5 oSq=4 xMob=3782 oMob=2388

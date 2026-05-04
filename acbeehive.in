@@ -1,0 +1,66 @@
+showBoard
+doMove 6,5
+showVal
+doMove swap
+showVal
+showPlayer
+doMove 5, 10
+showVal
+doMove 5,4
+showVal
+doMove 3, 11
+showVal
+doMove 3,5
+showVal
+doMove 5,8
+showVal
+doMove 8,4
+showVal
+doMove 4,7
+showVal
+doMove 10,3
+showVal
+doMove 5,5
+showVal
+doMove 6,4
+showVal
+doMove 3,9
+showVal
+showBoard
+showVal
+doMove 1,6
+showVal
+doMove 11,3
+showVal
+doMove 11,2
+showVal
+doMove 7, 5
+showVal
+doMove 7,4
+showVal
+doMove 4,5
+showVal
+doMove 4,4
+showVal
+doMove 9,4
+showVal
+doMove 9,3
+showVal
+doMove 6,7
+showVal
+doMove 2,5
+showVal
+showBoard
+showMoves
+showMoveHist
+testRun 1 100000
+showBoard
+showVal
+showMoves
+saveBoard board1.bh
+undoMoves 10
+showBoard
+loadBoard board1.bh
+showBoard
+quit
+

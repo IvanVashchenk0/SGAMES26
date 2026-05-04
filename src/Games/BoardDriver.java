@@ -12,6 +12,23 @@ public class BoardDriver {
     private Board board;
     private Board.Move currentMove;
     static final int MAX_LINE_LENGTH = 80;
+    private static final int FIRST_INDEX = 0;
+    private static final int NEXT_ITEM_OFFSET = 1;
+    private static final int COMMAND_NAME_INDEX = 0;
+    private static final int COMMAND_ARG_INDEX = 1;
+    private static final int COMMAND_PART_LIMIT = 2;
+    private static final int SEED_ARG_INDEX = 0;
+    private static final int COUNT_ARG_INDEX = 1;
+    private static final int LEVEL_ARG_INDEX = 0;
+    private static final int MOVE_COUNT_ARG_INDEX = 1;
+    private static final int COMPARISON_EQUAL = 0;
+    private static final int HISTORY_COLUMN_WIDTH = 40;
+    private static final int HISTORY_COLUMN_COUNT = 2;
+    private static final int FIRST_HISTORY_COLUMN = 0;
+    private static final int SECOND_HISTORY_COLUMN = 1;
+    private static final int REQUIRED_MAIN_ARG_COUNT = 1;
+    private static final int BOARD_CLASS_ARG_INDEX = 0;
+    private static final int FAILURE_EXIT_CODE = 1;
 
     public BoardDriver(Board board) {
         this.board = board;
@@ -20,7 +37,7 @@ public class BoardDriver {
 
     public void testPlay(int seed, int moveCount) {
         Random rnd = new Random(seed);
-        for (int i = 0; i < moveCount; i++) {
+        for (int i = FIRST_INDEX; i < moveCount; i++) {
             List<? extends Board.Move> validMoves = board.getValidMoves();
             if (validMoves.isEmpty()) {
                 break;
@@ -37,14 +54,14 @@ public class BoardDriver {
     
     public void testRun(int seed, int stepCount) {
         Random rnd = new Random(seed);
-        int stepsMade = 0;
+        int stepsMade = FIRST_INDEX;
         while (stepsMade < stepCount) {
             List<? extends Board.Move> validMoves = board.getValidMoves();
             List<? extends Board.Move> moveHist = board.getMoveHistory();
             if (validMoves.isEmpty() || board.getValue() == Board.WIN || board.getValue() == -Board.WIN || board.isGameOver()) {
                 if (!moveHist.isEmpty()) {
-                    int revertMovesCount = rnd.nextInt(moveHist.size()) + 1;
-                    for (int i = 0; i < revertMovesCount && !board.getMoveHistory().isEmpty(); i++) {
+                    int revertMovesCount = rnd.nextInt(moveHist.size()) + NEXT_ITEM_OFFSET;
+                    for (int i = FIRST_INDEX; i < revertMovesCount && !board.getMoveHistory().isEmpty(); i++) {
                         board.undoMove();
                     }
                     stepsMade++;
@@ -73,9 +90,9 @@ public class BoardDriver {
         try {
             compareMove.fromString(moveString);
             int comparison = currentMove.compareTo(compareMove);
-            if (comparison < 0) {
+            if (comparison < COMPARISON_EQUAL) {
                 System.out.println("Current move is less");
-            } else if (comparison > 0) {
+            } else if (comparison > COMPARISON_EQUAL) {
                 System.out.println("Current move is greater");
             } else {
                 System.out.println("Current move is equal");
@@ -97,26 +114,29 @@ public class BoardDriver {
     public void showMoves() {
         List<? extends Board.Move> moves = board.getValidMoves();
         if (moves.isEmpty()) {
-            System.out.println("No valid moves available.");
+            System.out.println();
             return;
         }
 
-        int maxMoveLength = moves.stream().mapToInt(m -> m.toString().length()).max().orElse(0);
-        int columns = MAX_LINE_LENGTH / (maxMoveLength + 1);
+        int maxMoveLength = moves.stream().mapToInt(m -> m.toString().length()).max().orElse(FIRST_INDEX);
+        int columns = MAX_LINE_LENGTH / (maxMoveLength + NEXT_ITEM_OFFSET);
 
-        for (int i = 0; i < moves.size(); i++) {
-            System.out.printf("%-" + (maxMoveLength + 1) + "s", moves.get(i).toString());
-            if ((i + 1) % columns == 0 || i == moves.size() - 1) {
+        for (int i = FIRST_INDEX; i < moves.size(); i++) {
+            System.out.printf("%-" + (maxMoveLength + NEXT_ITEM_OFFSET) + "s", moves.get(i).toString());
+            if ((i + NEXT_ITEM_OFFSET) % columns == FIRST_INDEX
+                    || i == moves.size() - NEXT_ITEM_OFFSET) {
                 System.out.println();
             }
         }
     }
 
-    public void enterMove(String moveString) {
+    public boolean enterMove(String moveString) {
         try {
             currentMove.fromString(moveString);
+            return true;
         } catch (IOException e) {
             System.out.println("Invalid move format: " + e.getMessage());
+            return false;
         }
     }
 
@@ -134,13 +154,14 @@ public class BoardDriver {
     }
 
     public void doMove(String moveString) {
-        enterMove(moveString);
-        applyMove();
+        if (enterMove(moveString)) {
+            applyMove();
+        }
     }
 
     public void undoMoves(int count) {
         int toUndo = Math.min(count, board.getMoveHistory().size());
-        for (int i = 0; i < toUndo; i++) {
+        for (int i = FIRST_INDEX; i < toUndo; i++) {
             board.undoMove();
         }
     }
@@ -155,11 +176,14 @@ public class BoardDriver {
             System.out.println("No moves have been made yet.");
             return;
         }
-        final int COL_WIDTH = 40;
-        final int COLS = 2;
-        for (int i = 0; i < history.size(); i++) {
-            System.out.printf("%-" + COL_WIDTH + "s", history.get(i).toString());
-            if ((i + 1) % COLS == 0 || i == history.size() - 1) {
+        for (int i = FIRST_INDEX; i < history.size(); i++) {
+            int column = i % HISTORY_COLUMN_COUNT;
+            if (column == FIRST_HISTORY_COLUMN) {
+                System.out.printf("%-" + HISTORY_COLUMN_WIDTH + "s", history.get(i).toString());
+            } else {
+                System.out.print(history.get(i).toString());
+            }
+            if (column == SECOND_HISTORY_COLUMN || i == history.size() - NEXT_ITEM_OFFSET) {
                 System.out.println();
             }
         }
@@ -203,8 +227,9 @@ public class BoardDriver {
 
     /** Returns false to quit, true to continue. */
     public boolean handleCommand(String command) {
-        String[] commandParts = command.split(" ", 2);
-        String cmd = commandParts[0].toLowerCase();
+        command = command.trim();
+        String[] commandParts = command.split("\\s+", COMMAND_PART_LIMIT);
+        String cmd = commandParts[COMMAND_NAME_INDEX].toLowerCase();
 
         switch (cmd) {
             case "showboard":
@@ -214,8 +239,8 @@ public class BoardDriver {
                 showMoves();
                 break;
             case "entermove":
-                if (commandParts.length > 1) {
-                    enterMove(commandParts[1].trim());
+                if (commandParts.length > COMMAND_ARG_INDEX) {
+                    enterMove(commandParts[COMMAND_ARG_INDEX].trim());
                 } else {
                     System.out.println("Invalid move format.");
                 }
@@ -227,16 +252,16 @@ public class BoardDriver {
                 applyMove();
                 break;
             case "domove":
-                if (commandParts.length > 1) {
-                    doMove(commandParts[1].trim());
+                if (commandParts.length > COMMAND_ARG_INDEX) {
+                    doMove(commandParts[COMMAND_ARG_INDEX].trim());
                 } else {
                     System.out.println("Invalid move format.");
                 }
                 break;
             case "undomoves":
-                if (commandParts.length > 1) {
+                if (commandParts.length > COMMAND_ARG_INDEX) {
                     try {
-                        int count = Integer.parseInt(commandParts[1]);
+                        int count = Integer.parseInt(commandParts[COMMAND_ARG_INDEX].trim());
                         undoMoves(count);
                     } catch (NumberFormatException e) {
                         System.out.println("Invalid number of moves.");
@@ -252,15 +277,15 @@ public class BoardDriver {
                 showMoveHist();
                 break;
             case "saveboard":
-                if (commandParts.length > 1) {
-                    saveBoard(commandParts[1].trim());
+                if (commandParts.length > COMMAND_ARG_INDEX) {
+                    saveBoard(commandParts[COMMAND_ARG_INDEX].trim());
                 } else {
                     System.out.println("Please specify a filename.");
                 }
                 break;
             case "loadboard":
-                if (commandParts.length > 1) {
-                    loadBoard(commandParts[1].trim());
+                if (commandParts.length > COMMAND_ARG_INDEX) {
+                    loadBoard(commandParts[COMMAND_ARG_INDEX].trim());
                 } else {
                     System.out.println("Please specify a filename.");
                 }
@@ -268,11 +293,11 @@ public class BoardDriver {
             case "quit":
                 return false;
             case "testplay":
-                if (commandParts.length > 1) {
+                if (commandParts.length > COMMAND_ARG_INDEX) {
                     try {
-                        String[] params = commandParts[1].split(" ");
-                        int seed = Integer.parseInt(params[0].trim());
-                        int moveCount = Integer.parseInt(params[1].trim());
+                        String[] params = commandParts[COMMAND_ARG_INDEX].trim().split("\\s+");
+                        int seed = Integer.parseInt(params[SEED_ARG_INDEX].trim());
+                        int moveCount = Integer.parseInt(params[COUNT_ARG_INDEX].trim());
                         testPlay(seed, moveCount);
                     } catch (NumberFormatException e) {
                         System.out.println("Invalid input. Please enter seed and move count as integers.");
@@ -284,11 +309,11 @@ public class BoardDriver {
                 }
                 break;
             case "testrun":
-                if (commandParts.length > 1) {
+                if (commandParts.length > COMMAND_ARG_INDEX) {
                     try {
-                        String[] params = commandParts[1].split(" ");
-                        int seed = Integer.parseInt(params[0].trim());
-                        int stepCount = Integer.parseInt(params[1].trim());
+                        String[] params = commandParts[COMMAND_ARG_INDEX].trim().split("\\s+");
+                        int seed = Integer.parseInt(params[SEED_ARG_INDEX].trim());
+                        int stepCount = Integer.parseInt(params[COUNT_ARG_INDEX].trim());
                         testRun(seed, stepCount);
                     } catch (NumberFormatException e) {
                         System.out.println("Invalid input. Please enter seed and step count as integers.");
@@ -300,8 +325,8 @@ public class BoardDriver {
                 }
                 break;
             case "comparemove":
-                if (commandParts.length > 1) {
-                    compareMove(commandParts[1].trim());
+                if (commandParts.length > COMMAND_ARG_INDEX) {
+                    compareMove(commandParts[COMMAND_ARG_INDEX].trim());
                 } else {
                     System.out.println("Please specify a move to compare.");
                 }
@@ -310,9 +335,9 @@ public class BoardDriver {
                 showPlayer();
                 break;
             case "minimax":
-                if (commandParts.length > 1) {
+                if (commandParts.length > COMMAND_ARG_INDEX) {
                     try {
-                        int level = Integer.parseInt(commandParts[1].trim());
+                        int level = Integer.parseInt(commandParts[COMMAND_ARG_INDEX].trim());
                         Minimax.ValueMove result = new Minimax.ValueMove();
                         Minimax.minimax(board, Integer.MIN_VALUE, Integer.MAX_VALUE, level, result);
                         System.out.println("Best move: " + result.move + " with value: " + result.value);
@@ -326,13 +351,13 @@ public class BoardDriver {
                 }
                 break;
                 case "autoplay":
-                    if (commandParts.length > 1) {
+                    if (commandParts.length > COMMAND_ARG_INDEX) {
                         try {
-                            String[] params = commandParts[1].split(" ");
-                            int level = Integer.parseInt(params[0].trim());
-                            int moveCount = Integer.parseInt(params[1].trim());
+                            String[] params = commandParts[COMMAND_ARG_INDEX].trim().split("\\s+");
+                            int level = Integer.parseInt(params[LEVEL_ARG_INDEX].trim());
+                            int moveCount = Integer.parseInt(params[MOVE_COUNT_ARG_INDEX].trim());
                             Minimax.ValueMove result = new Minimax.ValueMove();
-                            for (int i = 0; i < moveCount; i++) {
+                            for (int i = FIRST_INDEX; i < moveCount; i++) {
                                 if (board.isGameOver()) break;
                                 Minimax.minimax(board, Integer.MIN_VALUE, Integer.MAX_VALUE, level, result);
                                 System.out.println("Best move: " + result.move + " with value: " + result.value);
@@ -360,22 +385,23 @@ public class BoardDriver {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         
-        if (args.length != 1) {
+        if (args.length != REQUIRED_MAIN_ARG_COUNT) {
             System.out.println("Usage: java -cp bin Games.BoardDriver <BoardClassName>");
             System.out.println("  TicTacToe:  Games.IVASHCH.TicTacToe.TTTBoard");
             System.out.println("  CenterRush: Games.IVASHCH.CenterRush.CRBoard");
             System.out.println("  Blokus:     Games.IVASHCH.Blokus.BlokusBoard");
-            System.exit(1);
+            System.out.println("  Beehive:    Games.IVASHCH.Beehive.BeehiveBoard");
+            System.exit(FAILURE_EXIT_CODE);
         }
 
         Board board = null;
         try {
-            Class<?> boardClass = Class.forName(args[0]);
+            Class<?> boardClass = Class.forName(args[BOARD_CLASS_ARG_INDEX]);
             board = (Board) boardClass.getDeclaredConstructor().newInstance();
             //System.out.println("Starting game with " + boardClass.getSimpleName());
         } catch (Exception e) {
             System.out.println("Error creating game board: " + e.getMessage());
-            System.exit(1);
+            System.exit(FAILURE_EXIT_CODE);
         }
 
         BoardDriver driver = new BoardDriver(board);
